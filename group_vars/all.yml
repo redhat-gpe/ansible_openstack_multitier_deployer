@@ -1,0 +1,118 @@
+openstack_cloud: "{{ lookup('env', 'GUID') }}-project" 
+GUID: "{{ lookup('env', 'GUID') }}"
+
+provisioning_ssh_key: ansible_ssh_key
+
+default_flavor: 2c2g30d
+default_server_image: rhel-server-7.7-update-2
+
+openstack_keypair:
+
+  name: "{{ provisioning_ssh_key }}"
+  cloud: "{{ openstack_cloud }}"
+  state: present
+  public_key_file: "{{ ansible_env.HOME }}/.ssh/{{ provisioning_ssh_key }}.pub"
+
+openstack_external_network_name: external
+
+openstack_networks:
+
+  - cloud_name: "{{ openstack_cloud }}"
+    network_name: int_network
+    subnet_name: int_subnet
+    cidr_network: "172.16.0.0/24"
+    state: present
+    external: false
+    admin_state: yes
+    ip_version: 4
+    enable_dhcp: yes
+
+#  - cloud_name: "{{ openstack_cloud }}"
+#    network_name: ext_network
+#    state: present
+#    provider_network_type: flat
+#    provider_physical_network: datacentre
+#    subnet_name: ext_subnet
+#    cidr_network: "192.0.2.0/24"
+#    external: true
+#    gateway_ip: 192.0.2.254
+#    admin_state: yes
+#    ip_version: 4
+#    enable_dhcp: no
+#    allocation_pool_start: 192.0.2.150
+#    allocation_pool_end: 192.0.2.200
+#
+
+
+openstack_routers:
+  - name: router
+  #- name: tok-osp-08-internal-router #router
+    # cloud_name: openstack
+    cloud_name: "{{ openstack_cloud }}"
+    state: present
+    network: external # ext_network
+    interfaces: int_subnet
+
+openstack_security_groups: []    
+
+
+openstack_servers:
+
+  - instance_name: app1
+    flavor: "{{ default_flavor }}"
+    image: "{{ default_server_image | default('rhel-7.6') }}"
+    group: app_servers
+    deployment: dev
+    security_group_name: apps
+
+  - instance_name: app2
+    flavor: "{{ default_flavor }}"
+    image: "{{ default_server_image | default('rhel-7.6') }}"
+    group: app_servers
+    deployment: dev
+    security_group_name: apps
+
+  - instance_name: db
+    flavor: "{{ default_flavor }}"
+    image: "{{ default_server_image | default('rhel-7.6') }}"
+    group: database_servers
+    deployment: dev
+    security_group_name: db
+
+  - instance_name: frontend1
+    flavor: "{{ default_flavor }}"
+    image: "{{ default_server_image | default('rhel-7.6') }}"
+    group: load_balancers
+    deployment: dev
+    security_group_name: frontend
+
+
+openstack_images:
+
+  - name: rhel-7.6
+    cloud: "{{ openstack_cloud }}"
+
+    fetch: true
+    state: present
+    container_format: bare
+    disk_format: qcow2
+    file_name: /tmp/rhel-7.6.qcow2
+    src_url: https://www.opentlc.com/download/ansible_bootcamp/rhel-server-7.6-update-5-x86_64-kvm.qcow2
+
+openstack_flavors:
+
+  - name: m2.small
+    cloud: "{{ openstack_cloud }}"
+    state: present
+    vcpus: 1
+    ram: 1024
+    disk: 20
+
+  - name: m2.medium
+    cloud: "{{ openstack_cloud }}"
+    state: present
+    vcpus: 2
+    ram: 2048
+    disk: 20
+
+...
