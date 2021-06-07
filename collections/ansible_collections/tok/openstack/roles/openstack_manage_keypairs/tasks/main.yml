@@ -18,7 +18,7 @@
     - name: Delete OSP keypair first if present
       os_keypair:
         cloud:              "{{ openstack_keypair.cloud }}"
-        name:               "{{ openstack_keypair.name  | default('ansible_ss_key') }}"
+        name:               "{{ openstack_keypair.name  | default('ansible_ssh_key') }}"
         state:              absent 
 
     - name: Create OSP keypair

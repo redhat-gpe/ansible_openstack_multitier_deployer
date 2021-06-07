@@ -1,22 +1,47 @@
 ---
 
-# - import_playbook: setup-jumpbox.yml
+- name: Setup remote OpenStack control node i.e. not localhost
+  when: osp_remote_control_node | default(false) | bool 
+  import_playbook: playbooks/setup-jumpbox.yml
+  tags:
+    - remote_control_node
 
-# - import_playbook: playbooks/manage-flavors.yml
-#  import_playbook: playbooks/manage-images.yml
+- name: When privilege level allows flavor creation
+  when: osp_elevated_privileges | default(false) | bool 
+  import_playbook: playbooks/manage-flavors.yml
+  tags:
+    - manage_flavors
+
+- name: When privilege level allows image creation
+  import_playbook: playbooks/manage-images.yml
+  tags:
+    - manage_images
 
 - name: Setup keypairs - ssh keys
-  import_playbook: manage-keypairs.yml
-
-- name: Setup networks and router
-  import_playbook: manage-networks.yml
+  when: osp_elevated_privileges | default(false) | bool 
+  import_playbook: playbooks/manage-keypairs.yml
   tags:
-    - network
-    - router
+    - manage_keypairs
 
-- import_playbook: manage-security-groups.yml
-#- import_playbook: playbooks/manage-servers.yml
+- name: Setup networks subnets, and routers
+  import_playbook: playbooks/manage-networks.yml
+  tags:
+    - manage_networks
 
-- import_playbook: manage-servers-example.yml
+- name: Setup networks subnets, and routers
+  import_playbook: playbooks/manage-networks.yml
+  tags:
+    - manage_networks
+
+- name: Setup Security Groups
+  import_playbook: playbooks/manage-security-groups.yml
+  tags:
+    - manage_security_groups
+
+- name: Setup Servers
+  import_playbook: playbooks/manage-servers.yml # An empty placeholder role
+# - import_playbook: manage-servers-example.yml # A complete working examples
+  tags:
+    - manage_servers
 
 ...
